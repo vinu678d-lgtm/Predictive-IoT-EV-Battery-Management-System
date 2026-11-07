@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+m     <title>EV Battery Intelligence System</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #06121f;
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        header {
+            text-align: center;
+            padding: 28px 20px;
+            background: #0c1d2e;
+            border-bottom: 2px solid #00d9ff;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        header p {
+            margin-top: 8px;
+            margin-bottom: 0;
+            color: #80b7e8;
+            font-size: 16px;
+        }
+
+        .container {
+            width: 97%;
+            margin: auto;
+            padding: 25px 0;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            background: #10263a;
+            border: 1px solid #234762;
+            border-radius: 12px;
+            padding: 22px;
+            min-height: 120px;
+        }
+
+        .card h3 {
+            margin: 0;
+            color: #8bb8e1;
+            font-size: 18px;
+        }
+
+        .metric {
+            margin-top: 22px;
+            color: #00dcff;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .unit {
+            font-size: 15px;
+            color: white;
+        }
+
+        .section {
+            margin-top: 25px;
+            background: #10263a;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #1b3d57;
+        }
+
+        .section-title {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 25px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .status-label {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #9dc2e3;
+        }
+
+        .status-value {
+            font-size: 23px;
+            font-weight: bold;
+            color: #00dcff;
+        }
+
+        #alert {
+            color: #ffd500;
+        }
+
+        .risk-layout,
+        .soh-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+
+        .risk-score-box,
+        .soh-score-box {
+            background: #091d2e;
+            border: 1px solid #27506e;
+            border-radius: 12px;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .risk-circle,
+        .soh-circle {
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border: 12px solid #00dcff;
+            background: #071725;
+        }
+
+        #riskScore,
+        #sohValue {
+            font-size: 48px;
+            font-weight: bold;
+            color: #00dcff;
+        }
+
+        .risk-out-of {
+            color: #8bb8e1;
+            font-size: 17px;
+        }
+
+        #riskLevel,
+        #healthStatus {
+            margin-top: 22px;
+            font-size: 27px;
+            font-weight: bold;
+            color: #00dcff;
+        }
+
+        .risk-info,
+        .soh-info {
+            background: #091d2e;
+            border: 1px solid #27506e;
+            border-radius: 12px;
+            padding: 25px;
+        }
+
+        .risk-info h3,
+        .soh-info h3 {
+            margin-top: 0;
+            color: #8bb8e1;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #20364a;
+            height: 22px;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        #riskProgress,
+        #sohProgress {
+            width: 0%;
+            height: 100%;
+            background: #00dcff;
+            transition: width 0.5s;
+        }
+
+        .risk-scale,
+        .soh-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #87acd0;
+        }
+
+        #riskExplanation,
+        #sohExplanation {
+            margin-top: 25px;
+            font-size: 17px;
+            line-height: 1.7;
+            color: #b7d9f5;
+        }
+
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .health-metric {
+            background: #10263a;
+            border: 1px solid #27506e;
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .health-metric-label {
+            color: #8bb8e1;
+            font-size: 14px;
+        }
+
+        .health-metric-value {
+            margin-top: 10px;
+            color: #00dcff;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .test-panel {
+            background: #091d2e;
+            border: 1px solid #27506e;
+            padding: 22px;
+            border-radius: 12px;
+        }
+
+        .mode-line {
+            margin-bottom: 25px;
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        #modeIndicator {
+            margin-left: 10px;
+            border: 1px solid #00dcff;
+            color: #00dcff;
+            border-radius: 25px;
+            padding: 9px 18px;
+        }
+
+        .slider-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .slider-box {
+            border: 1px solid #27506e;
+            background: #10263a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .slider-box h3 {
+            color: #8bb8e1;
+            margin-top: 0;
+        }
+
+        .slider-value {
+            font-size: 28px;
+            color: #00dcff;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .slider-scale {
+            display: flex;
+            justify-content: space-between;
+            color: #7da6ca;
+            font-size: 13px;
+        }
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        button {
+            border: none;
+            padding: 13px 22px;
+            border-radius: 7px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .manual-button {
+            background: #ffd000;
+        }
+
+        .apply-button {
+            background: #35df7b;
+        }
+
+        .start-button {
+            background: #ff6969;
+            color: white;
+        }
+
+        .stop-button {
+            background: #ed983d;
+        }
+
+        .reset-button {
+            background: #00d5ef;
+        }
+
+        .demo-flow {
+            margin-top: 22px;
+            border-left: 4px solid #00dcff;
+            background: #071827;
+            padding: 14px;
+            color: #b0d6f4;
+        }
+
+        .description {
+            margin-top: 20px;
+            color: #85bce8;
+            line-height: 1.6;
+        }
+
+        .chart-container {
+            height: 350px;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .history-chart {
+            height: 300px;
+        }
+
+        .soc-chart {
+            margin-top: 25px;
+            height: 300px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            color: #00dcff;
+            padding: 13px;
+            border-bottom: 1px solid #31526c;
+        }
+
+        td {
+            padding: 13px;
+            border-bottom: 1px solid #31526c;
+        }
+
+        .download-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 13px 20px;
+            background: #00d8f0;
+            color: black;
+            text-decoration: none;
+            border-radius: 7px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #618aad;
+        }
+
+        @media(max-width: 900px) {
+            .cards,
+            .status-grid,
+            .slider-grid,
+            .history-grid,
+            .risk-layout,
+            .soh-layout,
+            .health-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>EV BATTERY INTELLIGENCE SYSTEM</h1>
+    <p>Edge-Based Predictive Battery Monitoring & Adaptive Thermal Management</p>
+</header>
+
+<div class="container">
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>BATTERY VOLTAGE</h3>
+            <div class="metric" id="voltage">-- V</div>
+        </div>
+
+        <div class="card">
+            <h3>BATTERY CURRENT</h3>
+            <div class="metric" id="current">-- A</div>
+        </div>
+
+        <div class="card">
+            <h3>BATTERY POWER</h3>
+            <div class="metric" id="power">-- W</div>
+        </div>
+
+        <div class="card">
+            <h3>STATE OF CHARGE</h3>
+            <div class="metric" id="soc">-- %</div>
+        </div>
+
+        <div class="card">
+            <h3>TEMPERATURE</h3>
+            <div class="metric" id="temperature">-- °C</div>
+        </div>
+
+        <div class="card">
+            <h3>FAN SPEED</h3>
+            <div class="metric" id="fanSpeed">-- %</div>
+        </div>
+
+        <div class="card">
+            <h3>TEMP RISE RATE</h3>
+            <div class="metric" id="tempRate">--</div>
+            <div class="unit">°C/min</div>
+        </div>
+
+        <div class="card">
+            <h3>5-MIN PREDICTION</h3>
+            <div class="metric" id="predictedTemp">-- °C</div>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2 class="section-title">THERMAL MANAGEMENT STATUS</h2>
+
+        <div class="status-grid">
+
+            <div>
+                <div class="status-label">Thermal State</div>
+                <div class="status-value" id="thermalState">--</div>
+            </div>
+
+            <div>
+                <div class="status-label">Predictive Alert</div>
+                <div class="status-value" id="alert">--</div>
+            </div>
+
+            <div>
+                <div class="status-label">Cooling System</div>
+                <div class="status-value" id="cooling">--</div>
+            </div>
+
+            <div>
+                <div class="status-label">Edge Node</div>
+                <div class="status-value" id="edgeStatus">ONLINE</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="section">
+
+        <h2 class="section-title">BATTERY RISK & INTELLIGENCE ENGINE</h2>
+
+        <div class="risk-layout">
+
+            <div class="risk-score-box">
+
+                <div class="risk-circle" id="riskCircle">
+                    <div id="riskScore">0</div>
+                    <div class="risk-out-of">/ 100</div>
+                </div>
+
+                <div id="riskLevel">LOW</div>
+
+            </div>
+
+            <div class="risk-info">
+
+                <h3>MULTI-PARAMETER BATTERY RISK ASSESSMENT</h3>
+
+                <div class="progress-container">
+                    <div id="riskProgress"></div>
+                </div>
+
+                <div class="risk-scale">
+                    <span>LOW</span>
+                    <span>MODERATE</span>
+                    <span>HIGH</span>
+                    <span>CRITICAL</span>
+                </div>
+
+                <div id="riskExplanation">
+                    Waiting for battery telemetry...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2 class="section-title">BATTERY HEALTH & SOH ANALYTICS</h2>
+
+        <div class="soh-layout">
+
+            <div class="soh-score-box">
+
+                <div class="soh-circle" id="sohCircle">
+                    <div id="sohValue">--</div>
+                    <div class="risk-out-of">% SOH</div>
+                </div>
+
+                <div id="healthStatus">WAITING</div>
+
+            </div>
+
+            <div class="soh-info">
+
+                <h3>BATTERY DEGRADATION & CAPACITY ESTIMATION</h3>
+
+                <div class="progress-container">
+                    <div id="sohProgress"></div>
+                </div>
+
+                <div class="soh-scale">
+                    <span>DEGRADED</span>
+                    <span>AGED</span>
+                    <span>GOOD</span>
+                    <span>EXCELLENT</span>
+                </div>
+
+                <div class="health-metrics">
+
+                    <div class="health-metric">
+                        <div class="health-metric-label">Estimated Capacity</div>
+                        <div class="health-metric-value" id="estimatedCapacity">-- Ah</div>
+                    </div>
+
+                    <div class="health-metric">
+                        <div class="health-metric-label">Nominal Capacity</div>
+                        <div class="health-metric-value" id="nominalCapacity">-- Ah</div>
+                    </div>
+
+                    <div class="health-metric">
+                        <div class="health-metric-label">Equivalent Cycles</div>
+                        <div class="health-metric-value" id="equivalentCycles">--</div>
+                    </div>
+
+                    <div class="health-metric">
+                        <div class="health-metric-label">Degradation Index</div>
+                        <div class="health-metric-value" id="degradationIndex">--</div>
+                    </div>
+
+                    <div class="health-metric">
+                        <div class="health-metric-label">Cumulative Discharge</div>
+                        <div class="health-metric-value" id="cumulativeDischarge">-- Ah</div>
+                    </div>
+
+                    <div class="health-metric">
+                        <div class="health-metric-label">Health Classification</div>
+                        <div class="health-metric-value" id="healthClassification">--</div>
+                    </div>
+
+                </div>
+
+                <div id="sohExplanation">
+                    Waiting for battery health telemetry...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2 class="section-title">BATTERY TEST & SIMULATION</h2>
+
+        <div class="test-panel">
+
+            <div class="mode-line">
+                Operating Mode:
+                <span id="modeIndicator">AUTO SIMULATION</span>
+            </div>
+
+            <div class="slider-grid">
+
+                <div class="slider-box">
+
+                    <h3>Manual Battery Temperature</h3>
+
+                    <div class="slider-value">
+                        <span id="manualTempValue">28</span> °C
+                    </div>
+
+                    <input
+                        type="range"
+                        id="manualTemp"
+                        min="20"
+                        max="60"
+                        step="1"
+                        value="28"
+                    >
+
+                    <div class="slider-scale">
+                        <span>20°C</span>
+                        <span>40°C</span>
+                        <span>60°C</span>
+                    </div>
+
+                </div>
+
+                <div class="slider-box">
+
+                    <h3>Manual Load Current</h3>
+
+                    <div class="slider-value">
+                        <span id="manualCurrentValue">1.5</span> A
+                    </div>
+
+                    <input
+                        type="range"
+                        id="manualCurrent"
+                        min="0"
+                        max="5"
+                        step="0.1"
+                        value="1.5"
+                    >
+
+                    <div class="slider-scale">
+                        <span>0 A</span>
+                        <span>2.5 A</span>
+                        <span>5 A</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="buttons">
+
+                <button
+                    class="manual-button"
+                    onclick="enableManualMode()"
+                >
+                    MANUAL TEST MODE
+                </button>
+
+                <button
+                    class="apply-button"
+                    onclick="applyManualValues()"
+                >
+                    APPLY TEST VALUES
+                </button>
+
+                <button
+                    class="start-button"
+                    onclick="startHeatingTest()"
+                >
+                    START HEATING TEST
+                </button>
+
+                <button
+                    class="stop-button"
+                    onclick="stopHeatingTest()"
+                >
+                    STOP HEATING TEST
+                </button>
+
+                <button
+                    class="reset-button"
+                    onclick="resetSystem()"
+                >
+                    RESET TO AUTO
+                </button>
+
+            </div>
+
+            <div class="demo-flow">
+                <b>Predictive Demo Flow:</b>
+                Temperature Rise →
+                Rate-of-Change Detection →
+                5-Minute Forecast →
+                Battery Risk Assessment →
+                Adaptive Cooling →
+                Battery Health Tracking →
+                Event Logging
+            </div>
+
+            <div class="description">
+                The automatic heating test gradually increases simulated battery temperature.
+                The system monitors thermal behaviour, predicts future temperature,
+                evaluates battery risk and estimates battery degradation and State of Health.
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2 class="section-title">REAL-TIME THERMAL ANALYSIS</h2>
+
+        <div class="chart-container">
+            <canvas id="thermalChart"></canvas>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2 class="section-title">HISTORICAL BATTERY ANALYTICS</h2>
+
+        <div class="history-grid">
+
+            <div class="history-chart">
+                <canvas id="voltageChart"></canvas>
+            </div>
+
+            <div class="history-chart">
+                <canvas id="currentChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="soc-chart">
+            <canvas id="socChart"></canvas>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2 class="section-title">EVENT & FAULT LOG</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Thermal State</th>
+                        <th>Alert</th>
+                        <th>Temperature</th>
+                        <th>Predicted</th>
+                        <th>Fan %</th>
+                        <th>Risk Score</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+
+                <tbody id="eventTable"></tbody>
+
+            </table>
+
+        </div>
+
+        <a class="download-button" href="/download">
+            DOWNLOAD BATTERY REPORT CSV
+        </a>
+
+    </div>
+
+    <footer>
+        EV Battery Intelligence System |
+        Predictive Monitoring |
+        Battery Health Analytics |
+        Adaptive Thermal Management
+    </footer>
+
+</div>
+
+<script>
+    Chart.defaults.color = "#e8f4ff";
+    Chart.defaults.borderColor = "rgba(180,220,255,0.12)";
+    Chart.defaults.font.family = "Arial, Helvetica, sans-serif";
+
+    const chartScales = {
+        x: {
+            ticks: {
+                color: "#d8eaff",
+                maxRotation: 45,
+                minRotation: 35
+            },
+            grid: {
+                color: "rgba(180,220,255,0.08)"
+            }
+        },
+
+        y: {
+            ticks: {
+                color: "#d8eaff"
+            },
+            grid: {
+                color: "rgba(180,220,255,0.10)"
+            }
+        }
+    };
+
+    const thermalChart = new Chart(
+        document.getElementById("thermalChart"),
+        {
+            type: "line",
+
+            data: {
+                labels: [],
+
+                datasets: [
+                    {
+                        label: "Battery Temperature °C",
+                        data: [],
+
+                        borderColor: "#ff5d8f",
+                        backgroundColor: "rgba(255,93,143,0.12)",
+
+                        pointBackgroundColor: "#ff5d8f",
+                        pointBorderColor: "#ffffff",
+
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+
+                        borderWidth: 3,
+                        tension: 0.25,
+                        fill: false
+                    },
+
+                    {
+                        label: "Predicted Temperature °C",
+                        data: [],
+
+                        borderColor: "#ffd84d",
+                        backgroundColor: "rgba(255,216,77,0.10)",
+
+                        pointBackgroundColor: "#ffd84d",
+                        pointBorderColor: "#ffffff",
+
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+
+                        borderWidth: 3,
+                        borderDash: [8, 6],
+
+                        tension: 0.25,
+                        fill: false
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "#f2f8ff",
+                            padding: 18
+                        }
+                    }
+                },
+
+                scales: chartScales
+            }
+        }
+    );
+
+    const voltageChart = new Chart(
+        document.getElementById("voltageChart"),
+        {
+            type: "line",
+
+            data: {
+                labels: [],
+
+                datasets: [
+                    {
+                        label: "Voltage (V)",
+                        data: [],
+
+                        borderColor: "#00e5ff",
+                        backgroundColor: "rgba(0,229,255,0.12)",
+
+                        pointBackgroundColor: "#00e5ff",
+                        pointBorderColor: "#ffffff",
+
+                        pointRadius: 2.5,
+                        pointHoverRadius: 5,
+
+                        borderWidth: 3,
+                        tension: 0.2,
+                        fill: false
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "#f2f8ff"
+                        }
+                    }
+                },
+
+                scales: chartScales
+            }
+        }
+    );
+
+    const currentChart = new Chart(
+        document.getElementById("currentChart"),
+        {
+            type: "line",
+
+            data: {
+                labels: [],
+
+                datasets: [
+                    {
+                        label: "Current (A)",
+                        data: [],
+
+                        borderColor: "#ff9f43",
+                        backgroundColor: "rgba(255,159,67,0.12)",
+
+                        pointBackgroundColor: "#ff9f43",
+                        pointBorderColor: "#ffffff",
+
+                        pointRadius: 2.5,
+                        pointHoverRadius: 5,
+
+                        borderWidth: 3,
+                        tension: 0.2,
+                        fill: false
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "#f2f8ff"
+                        }
+                    }
+                },
+
+                scales: chartScales
+            }
+        }
+    );
+
+    const socChart = new Chart(
+        document.getElementById("socChart"),
+        {
+            type: "line",
+
+            data: {
+                labels: [],
+
+                datasets: [
+                    {
+                        label: "SOC (%)",
+                        data: [],
+
+                        borderColor: "#3ee686",
+                        backgroundColor: "rgba(62,230,134,0.12)",
+
+                        pointBackgroundColor: "#3ee686",
+                        pointBorderColor: "#ffffff",
+
+                        pointRadius: 2.5,
+                        pointHoverRadius: 5,
+
+                        borderWidth: 3,
+                        tension: 0.2,
+                        fill: false
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "#f2f8ff"
+                        }
+                    }
+                },
+
+                scales: chartScales
+            }
+        }
+    );
+
+    function updateRiskDisplay(data) {
+
+        const score = data.risk_score ?? 0;
+        const level = data.risk_level ?? "LOW";
+
+        document.getElementById("riskScore").innerText = score;
+        document.getElementById("riskLevel").innerText = level;
+
+        document.getElementById("riskProgress").style.width =
+            score + "%";
+
+        const circle =
+            document.getElementById("riskCircle");
+
+        const riskText =
+            document.getElementById("riskLevel");
+
+        let riskColor = "#00dcff";
+
+        if (level === "MODERATE") {
+            riskColor = "#ffd000";
+        }
+
+        else if (level === "HIGH") {
+            riskColor = "#ff922b";
+        }
+
+        else if (level === "CRITICAL") {
+            riskColor = "#ff4d5a";
+        }
+
+        circle.style.borderColor = riskColor;
+        riskText.style.color = riskColor;
+
+        document.getElementById("riskScore").style.color =
+            riskColor;
+
+        document.getElementById("riskProgress").style.background =
+            riskColor;
+
+        let explanation = "";
+
+        if (level === "LOW") {
+
+            explanation =
+                "Battery operating conditions are currently within the low-risk region. " +
+                "The system continues monitoring temperature, predicted temperature, " +
+                "temperature rise rate, current load and state of charge.";
+        }
+
+        else if (level === "MODERATE") {
+
+            explanation =
+                "Moderate battery risk detected. One or more battery parameters are " +
+                "moving away from normal operating conditions. Preventive cooling may " +
+                "be activated before a high-risk condition develops.";
+        }
+
+        else if (level === "HIGH") {
+
+            explanation =
+                "High battery risk detected. Thermal trend, predicted temperature or " +
+                "electrical loading indicates increased operating risk. Adaptive cooling " +
+                "is increased automatically.";
+        }
+
+        else {
+
+            explanation =
+                "Critical battery risk detected. Combined battery parameters indicate " +
+                "a severe operating condition and maximum cooling response is commanded.";
+        }
+
+        document.getElementById("riskExplanation").innerText =
+            explanation;
+    }
+
+    function updateSOHDisplay(data) {
+
+        const soh = data.soh ?? 100;
+
+        const healthStatus =
+            data.health_status ?? "EXCELLENT";
+
+        document.getElementById("sohValue").innerText =
+            soh;
+
+        document.getElementById("healthStatus").innerText =
+            healthStatus;
+
+        document.getElementById("sohProgress").style.width =
+            soh + "%";
+
+        document.getElementById("estimatedCapacity").innerText =
+            (data.estimated_capacity_ah ?? "--") + " Ah";
+
+        document.getElementById("nominalCapacity").innerText =
+            (data.nominal_capacity_ah ?? "--") + " Ah";
+
+        document.getElementById("equivalentCycles").innerText =
+            data.equivalent_cycles ?? "--";
+
+        document.getElementById("degradationIndex").innerText =
+            data.degradation_index ?? "--";
+
+        document.getElementById("cumulativeDischarge").innerText =
+            (data.cumulative_discharge_ah ?? "--") + " Ah";
+
+        document.getElementById("healthClassification").innerText =
+            healthStatus;
+
+        const circle =
+            document.getElementById("sohCircle");
+
+        const statusText =
+            document.getElementById("healthStatus");
+
+        let healthColor = "#35df7b";
+
+        if (healthStatus === "GOOD") {
+            healthColor = "#00dcff";
+        }
+
+        else if (healthStatus === "AGED") {
+            healthColor = "#ffd000";
+        }
+
+        else if (healthStatus === "DEGRADED") {
+            healthColor = "#ff4d5a";
+        }
+
+        circle.style.borderColor = healthColor;
+        statusText.style.color = healthColor;
+
+        document.getElementById("sohValue").style.color =
+            healthColor;
+
+        document.getElementById("sohProgress").style.background =
+            healthColor;
+
+        let explanation = "";
+
+        if (healthStatus === "EXCELLENT") {
+
+            explanation =
+                "Estimated battery health is excellent. Usable capacity remains close " +
+                "to nominal capacity and accumulated degradation is currently minimal.";
+        }
+
+        else if (healthStatus === "GOOD") {
+
+            explanation =
+                "Battery health remains good. Some simulated ageing has accumulated, " +
+                "but estimated usable capacity remains within a healthy operating range.";
+        }
+
+        else if (healthStatus === "AGED") {
+
+            explanation =
+                "Battery ageing is becoming significant. Estimated capacity has reduced " +
+                "and accumulated cycle or thermal stress indicates noticeable degradation.";
+        }
+
+        else {
+
+            explanation =
+                "Battery health is degraded. Estimated usable capacity and accumulated " +
+                "stress indicate substantial ageing and the battery may require inspection " +
+                "or replacement in a real system.";
+        }
+
+        document.getElementById("sohExplanation").innerText =
+            explanation;
+    }
+
+    async function updateLiveData() {
+
+        try {
+
+            const response =
+                await fetch("/api/data");
+
+            const data =
+                await response.json();
+
+            document.getElementById("voltage").innerText =
+                data.voltage + " V";
+
+            document.getElementById("current").innerText =
+                data.current + " A";
+
+            document.getElementById("power").innerText =
+                data.power + " W";
+
+            document.getElementById("soc").innerText =
+                data.soc + " %";
+
+            document.getElementById("temperature").innerText =
+                data.temperature + " °C";
+
+            document.getElementById("fanSpeed").innerText =
+                data.fan_speed + " %";
+
+            document.getElementById("tempRate").innerText =
+                data.temp_rate;
+
+            document.getElementById("predictedTemp").innerText =
+                data.predicted_temp + " °C";
+
+            document.getElementById("thermalState").innerText =
+                data.thermal_state;
+
+            document.getElementById("alert").innerText =
+                data.alert;
+
+            document.getElementById("cooling").innerText =
+                data.cooling_status;
+
+            updateRiskDisplay(data);
+            updateSOHDisplay(data);
+
+            const now =
+                new Date().toLocaleTimeString();
+
+            thermalChart.data.labels.push(now);
+
+            thermalChart.data.datasets[0].data.push(
+                data.temperature
+            );
+
+            thermalChart.data.datasets[1].data.push(
+                data.predicted_temp
+            );
+
+            if (
+                thermalChart.data.labels.length > 30
+            ) {
+
+                thermalChart.data.labels.shift();
+
+                thermalChart.data.datasets[0].data.shift();
+
+                thermalChart.data.datasets[1].data.shift();
+            }
+
+            thermalChart.update();
+
+        }
+
+        catch (error) {
+
+            console.log(
+                "Live data error:",
+                error
+            );
+        }
+    }
+
+    async function updateHistory() {
+
+        try {
+
+            const response =
+                await fetch("/api/history");
+
+            const data =
+                await response.json();
+
+            const labels =
+                data.map(
+                    item => item.timestamp
+                );
+
+            voltageChart.data.labels = labels;
+            currentChart.data.labels = labels;
+            socChart.data.labels = labels;
+
+            voltageChart.data.datasets[0].data =
+                data.map(
+                    item => item.voltage
+                );
+
+            currentChart.data.datasets[0].data =
+                data.map(
+                    item => item.current
+                );
+
+            socChart.data.datasets[0].data =
+                data.map(
+                    item => item.soc
+                );
+
+            voltageChart.update();
+            currentChart.update();
+            socChart.update();
+
+        }
+
+        catch (error) {
+
+            console.log(
+                "History error:",
+                error
+            );
+        }
+    }
+
+    async function updateEvents() {
+
+        try {
+
+            const response =
+                await fetch("/api/events");
+
+            const events =
+                await response.json();
+
+            const table =
+                document.getElementById(
+                    "eventTable"
+                );
+
+            table.innerHTML = "";
+
+            events.forEach(
+                event => {
+
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+                    const score =
+                        event.risk_score ?? "-";
+
+                    const level =
+                        event.risk_level ?? "-";
+
+                    row.innerHTML = `
+                        <td>${event.timestamp}</td>
+                        <td>${event.thermal_state}</td>
+                        <td>${event.alert}</td>
+                        <td>${event.temperature} °C</td>
+                        <td>${event.predicted_temp} °C</td>
+                        <td>${event.fan_speed} %</td>
+                        <td>${score}</td>
+                        <td><b>${level}</b></td>
+                    `;
+
+                    table.appendChild(row);
+                }
+            );
+
+        }
+
+        catch (error) {
+
+            console.log(
+                "Event error:",
+                error
+            );
+        }
+    }
+
+    const tempSlider =
+        document.getElementById(
+            "manualTemp"
+        );
+
+    const currentSlider =
+        document.getElementById(
+            "manualCurrent"
+        );
+
+    tempSlider.oninput =
+        function () {
+
+            document.getElementById(
+                "manualTempValue"
+            ).innerText =
+                this.value;
+        };
+
+    currentSlider.oninput =
+        function () {
+
+            document.getElementById(
+                "manualCurrentValue"
+            ).innerText =
+                this.value;
+        };
+
+    async function enableManualMode() {
+
+        await fetch(
+            "/api/manual/on"
+        );
+
+        updateModeStatus();
+    }
+
+    async function applyManualValues() {
+
+        const temperature =
+            parseFloat(
+                tempSlider.value
+            );
+
+        const current =
+            parseFloat(
+                currentSlider.value
+            );
+
+        await fetch(
+            "/api/manual/set",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(
+                        {
+                            temperature:
+                                temperature,
+
+                            current:
+                                current
+                        }
+                    )
+            }
+        );
+
+        updateModeStatus();
+    }
+
+    async function startHeatingTest() {
+
+        await fetch(
+            "/api/heating/start"
+        );
+
+        updateModeStatus();
+    }
+
+    async function stopHeatingTest() {
+
+        await fetch(
+            "/api/heating/stop"
+        );
+
+        updateModeStatus();
+    }
+
+    async function resetSystem() {
+
+        await fetch(
+            "/api/reset"
+        );
+
+        updateModeStatus();
+    }
+
+    async function updateModeStatus() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/manual/status"
+                );
+
+            const data =
+                await response.json();
+
+            const indicator =
+                document.getElementById(
+                    "modeIndicator"
+                );
+
+            if (data.heating_test) {
+
+                indicator.innerText =
+                    "HEATING TEST ACTIVE";
+
+                indicator.style.color =
+                    "#ff6565";
+
+                indicator.style.borderColor =
+                    "#ff6565";
+            }
+
+            else if (data.enabled) {
+
+                indicator.innerText =
+                    "MANUAL TEST ACTIVE";
+
+                indicator.style.color =
+                    "#ffd000";
+
+                indicator.style.borderColor =
+                    "#ffd000";
+            }
+
+            else {
+
+                indicator.innerText =
+                    "AUTO SIMULATION";
+
+                indicator.style.color =
+                    "#00dcff";
+
+                indicator.style.borderColor =
+                    "#00dcff";
+            }
+
+        }
+
+        catch (error) {
+
+            console.log(
+                "Mode error:",
+                error
+            );
+        }
+    }
+
+    updateLiveData();
+    updateHistory();
+    updateEvents();
+    updateModeStatus();
+
+    setInterval(
+        updateLiveData,
+        2000
+    );
+
+    setInterval(
+        updateHistory,
+        5000
+    );
+
+    setInterval(
+        updateEvents,
+        5000
+    );
+
+    setInterval(
+        updateModeStatus,
+        3000
+    );
+</script>
+
+</body>
+</html>

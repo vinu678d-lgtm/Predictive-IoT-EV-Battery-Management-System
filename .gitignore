@@ -1,0 +1,19 @@
+# Python temporary files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+# Local logs and generated data
+*.log
+battery_data.db
+battery_report.csv
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+# Proteus temporary files and backups
+*.workspace
+*.pdsbad
+Project Backups/
